@@ -1,5 +1,7 @@
 package sql_entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Field implements Identified {
     private final String name;
     private final FieldType type;
@@ -30,6 +32,7 @@ public class Field implements Identified {
     }
 
     @Override
+    @JsonIgnore
     public String getId() {
         return this.name;
     }

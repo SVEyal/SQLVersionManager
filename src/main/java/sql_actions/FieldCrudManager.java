@@ -1,13 +1,16 @@
 package sql_actions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
 import exeptions.RevisionNotFoundException;
-import persistance.FieldPersistentManager;
+import persistance.managers.FieldPersistentManager;
 import sql_entities.FieldType;
 import sql_entities.VersionedField;
 
-import java.time.OffsetDateTime;
+import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,8 +38,8 @@ public class FieldCrudManager {
                                     String fieldIdentifier,
                                     FieldType fieldType,
                                     String SQLCode,
-                                    String description) throws EntityNotFoundException, FieldNotFoundException {
-        VersionedField versionedField = new VersionedField(fieldIdentifier, fieldType, SQLCode, description, OffsetDateTime.now(), "user"); // todo: user
+                                    String description) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+        VersionedField versionedField = new VersionedField(fieldIdentifier, fieldType, SQLCode, description, Instant.now().getEpochSecond(), "user"); // todo: user
         pm.persist(entityIdentifier, versionedField);
     }
 
@@ -61,7 +64,7 @@ public class FieldCrudManager {
      * @throws FieldNotFoundException - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
-    public VersionedField readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException {
+    public VersionedField readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
         return pm.read(entityIdentifier, fieldIdentifier);
     }
 
@@ -75,16 +78,16 @@ public class FieldCrudManager {
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
      */
-    public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, RevisionNotFoundException {
+    public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, RevisionNotFoundException, DatabaseIOException {
         return pm.readNVersions(entityIdentifier, fieldIdentifier, n);
     }
 
 
     /**
-     * returns full entity - feild structure
+     * returns full entity - field structure
      * @return - entity field structure via map of names
      */
-    public HashMap<String, List<String>> getAll() {
+    public HashMap<String, List<String>> getAll() throws DatabaseIOException {
         return pm.getAll();
     }
 }
