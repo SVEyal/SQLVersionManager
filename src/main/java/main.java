@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
@@ -51,8 +52,7 @@ public class main {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + params.getFieldIdentifier() + " doesn't exist for entity " + params.getEntityIdentifier());
             } catch (EntityNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity:" + params.getEntityIdentifier());
-            }
-            catch (DatabaseIOException e) {
+            } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
         });
@@ -65,6 +65,8 @@ public class main {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity:" + ctx.pathParam("entity"));
+            } catch (Exception e) {
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
             }
         });
 
@@ -76,8 +78,7 @@ public class main {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity:" + ctx.pathParam("entity"));
-            }
-            catch (DatabaseIOException e) {
+            } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
         });
@@ -94,8 +95,7 @@ public class main {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity:" + ctx.pathParam("entity"));
-            }
-            catch (DatabaseIOException e) {
+            } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
         });
