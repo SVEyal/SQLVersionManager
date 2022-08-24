@@ -27,8 +27,8 @@ public class FieldPersistentManager {
      * Persists data in persistence solution, either create or update
      * @param entityId - id of the Parent entity
      * @param versionedField - field version info
-     * @throws EntityNotFoundException
-     * @throws FieldNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void persist(String entityId, VersionedField versionedField) throws EntityNotFoundException, FieldNotFoundException {
         if(data.containsKey(entityId)) {
@@ -48,8 +48,8 @@ public class FieldPersistentManager {
      * Deletes data in persistence solution
      * @param entityId - id of the Parent entity
      * @param fieldId - id of the field
-     * @throws FieldNotFoundException
-     * @throws EntityNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void delete(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException {
         if(data.containsKey(entityId)) {
@@ -68,8 +68,8 @@ public class FieldPersistentManager {
      * @param entityId - id of the Parent entity
      * @param fieldId - id of the field
      * @return - latest version of data of field
-     * @throws FieldNotFoundException
-     * @throws EntityNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public VersionedField read(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException {
         if(data.containsKey(entityId)) {
@@ -89,9 +89,9 @@ public class FieldPersistentManager {
      * @param fieldId - id of the field
      * @param n - amount of versions to return
      * @return - n last versions of field
-     * @throws FieldNotFoundException
-     * @throws EntityNotFoundException
-     * @throws RevisionNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
      */
     public List<VersionedField> readNVersions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, RevisionNotFoundException {
         if(data.containsKey(entityId)) {
@@ -123,8 +123,7 @@ public class FieldPersistentManager {
                  data.get(entity).keySet()) {
                 entityToFieldMap.get(entity).add(field);
             }
-        };
-
+        }
         return entityToFieldMap;
     }
 

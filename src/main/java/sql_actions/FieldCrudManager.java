@@ -28,8 +28,8 @@ public class FieldCrudManager {
      * @param fieldType - field data type
      * @param SQLCode - Code for sql calculation of field
      * @param description - fields description
-     * @throws EntityNotFoundException
-     * @throws FieldNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void createOrUpdateField(String entityIdentifier,
                                     String fieldIdentifier,
@@ -45,8 +45,8 @@ public class FieldCrudManager {
      * DELETE method
      * @param entityIdentifier - Parent entity id
      * @param fieldIdentifier - field id
-     * @throws EntityNotFoundException
-     * @throws FieldNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void deleteField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException {
         pm.delete(entityIdentifier, fieldIdentifier);
@@ -58,8 +58,8 @@ public class FieldCrudManager {
      * @param entityIdentifier - Parent entity id
      * @param fieldIdentifier - field id
      * @return - the value of the latest version of the field
-     * @throws EntityNotFoundException
-     * @throws FieldNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public VersionedField readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException {
         return pm.read(entityIdentifier, fieldIdentifier);
@@ -71,9 +71,9 @@ public class FieldCrudManager {
      * @param fieldIdentifier - field id
      * @param n - number of latest versions to read
      * @return - list of latest versions of the field
-     * @throws EntityNotFoundException
-     * @throws FieldNotFoundException
-     * @throws RevisionNotFoundException
+     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
      */
     public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, RevisionNotFoundException {
         return pm.readNVersions(entityIdentifier, fieldIdentifier, n);
