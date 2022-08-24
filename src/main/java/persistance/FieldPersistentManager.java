@@ -118,7 +118,7 @@ public class FieldPersistentManager {
         HashMap<String, List<String>> entityToFieldMap = new HashMap<>();
         for (String entity:
              data.keySet()) {
-            entityToFieldMap.put(entity, Collections.emptyList());
+            entityToFieldMap.put(entity, new ArrayList<>());
             for (String field:
                  data.get(entity).keySet()) {
                 entityToFieldMap.get(entity).add(field);
@@ -129,7 +129,8 @@ public class FieldPersistentManager {
     }
 
     //todo : remove
-    public void addEntity(String entityId) {
+    public String addEntity(String entityId) {
         data.put(entityId, new HashMap<>());
+        return entityId;
     }
 }
