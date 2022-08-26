@@ -1,0 +1,22 @@
+version: "3.5"
+
+services:
+  server:
+    container_name: server
+    image: restor54/repo:server
+    ports:
+      - "80:80"
+    networks:
+      - db_connection
+    depends_on:
+      - mongodb
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    networks:
+      - db_connection
+
+networks:
+  db_connection:
+    name: db_connection
+    driver: bridge

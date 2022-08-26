@@ -11,7 +11,7 @@ import sql_entities.actions.CreateOrUpdateFieldParams;
 
 public class main {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().start(7070);
+        Javalin app = Javalin.create().start(80);
         init(app);
     }
 
