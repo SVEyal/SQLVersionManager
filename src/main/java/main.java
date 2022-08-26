@@ -1,4 +1,3 @@
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
@@ -7,8 +6,8 @@ import io.javalin.Javalin;
 import org.eclipse.jetty.http.HttpStatus;
 import persistance.db_connectors.MongoDBConnector;
 import persistance.managers.FieldPersistentManager;
-import sql_actions.FieldCrudManager;
-import sql_entities.rest_classes.CreateOrUpdateFieldParams;
+import rest_controller.FieldRestController;
+import sql_entities.actions.CreateOrUpdateFieldParams;
 
 public class main {
     public static void main(String[] args) {
@@ -19,12 +18,12 @@ public class main {
     private static void init(Javalin app) {
         final MongoDBConnector dbConnector = new MongoDBConnector();
         final FieldPersistentManager fpm = new FieldPersistentManager(dbConnector);
-        final FieldCrudManager fcm = new FieldCrudManager(fpm);
+        final FieldRestController rc = new FieldRestController(fpm);
 
         // Get all entities
         app.get("/entities", ctx -> {
             try {
-                ctx.json(fcm.getAll());
+                ctx.json(rc.getAll());
             } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
@@ -43,7 +42,7 @@ public class main {
         app.post("/field/create_or_update", ctx -> {
             CreateOrUpdateFieldParams params = ctx.bodyAsClass(CreateOrUpdateFieldParams.class);
             try {
-                fcm.createOrUpdateField(params.getEntityIdentifier(),
+                rc.createOrUpdateField(params.getEntityIdentifier(),
                         params.getFieldIdentifier(),
                         params.getFieldType(),
                         params.getSqlCode(),
@@ -60,7 +59,7 @@ public class main {
         // DELETE field
         app.delete("/field/:entity/:field", ctx -> {
             try {
-                fcm.deleteField(ctx.pathParam("entity"), ctx.pathParam("field"));
+                rc.deleteField(ctx.pathParam("entity"), ctx.pathParam("field"));
             } catch (FieldNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
@@ -73,7 +72,7 @@ public class main {
         // READ values
         app.get("/field/:entity/:field", ctx -> {
             try {
-                ctx.json(fcm.readField(ctx.pathParam("entity"), ctx.pathParam("field")));
+                ctx.json(rc.readField(ctx.pathParam("entity"), ctx.pathParam("field")));
             } catch (FieldNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
@@ -85,7 +84,7 @@ public class main {
 
         app.get("/field/:entity/:field/:n", ctx -> {
             try {
-                ctx.json(fcm.readNFieldVersions(ctx.pathParam("entity"),
+                ctx.json(rc.readNFieldVersions(ctx.pathParam("entity"),
                         ctx.pathParam(":field"),
                         ctx.validatedPathParam("n").asInt().getOrThrow()));
             } catch (RevisionNotFoundException e) {

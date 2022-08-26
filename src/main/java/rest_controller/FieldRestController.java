@@ -1,6 +1,5 @@
-package sql_actions;
+package rest_controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
@@ -9,7 +8,6 @@ import persistance.managers.FieldPersistentManager;
 import sql_entities.FieldType;
 import sql_entities.VersionedField;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -17,21 +15,22 @@ import java.util.List;
 /**
  * Main manager for CRUD operations in the system
  */
-public class FieldCrudManager {
+public class FieldRestController {
     private final FieldPersistentManager pm;
 
-    public FieldCrudManager(FieldPersistentManager fieldPersistentManager) {
+    public FieldRestController(FieldPersistentManager fieldPersistentManager) {
         this.pm = fieldPersistentManager;
     }
 
     /**
      * CREATE or UPDATE method
+     *
      * @param entityIdentifier - Parent entity id
-     * @param fieldIdentifier - field id
-     * @param fieldType - field data type
-     * @param SQLCode - Code for sql calculation of field
-     * @param description - fields description
-     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @param fieldIdentifier  - field id
+     * @param fieldType        - field data type
+     * @param SQLCode          - Code for sql calculation of field
+     * @param description      - fields description
+     * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void createOrUpdateField(String entityIdentifier,
@@ -46,9 +45,10 @@ public class FieldCrudManager {
 
     /**
      * DELETE method
+     *
      * @param entityIdentifier - Parent entity id
-     * @param fieldIdentifier - field id
-     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @param fieldIdentifier  - field id
+     * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void deleteField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException {
@@ -58,11 +58,13 @@ public class FieldCrudManager {
 
     /**
      * READ method
+     *
      * @param entityIdentifier - Parent entity id
-     * @param fieldIdentifier - field id
+     * @param fieldIdentifier  - field id
      * @return - the value of the latest version of the field
-     * @throws FieldNotFoundException - throws this exception if field doesn't exist
+     * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
     public VersionedField readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
         return pm.read(entityIdentifier, fieldIdentifier);
@@ -70,22 +72,26 @@ public class FieldCrudManager {
 
     /**
      * multi READ method, reads N latest versions
+     *
      * @param entityIdentifier - Parent entity id
-     * @param fieldIdentifier - field id
-     * @param n - number of latest versions to read
+     * @param fieldIdentifier  - field id
+     * @param n                - number of latest versions to read
      * @return - list of latest versions of the field
-     * @throws FieldNotFoundException - throws this exception if field doesn't exist
-     * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws FieldNotFoundException    - throws this exception if field doesn't exist
+     * @throws EntityNotFoundException   - throws this exception if entity doesn't exist
      * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
+     * @throws DatabaseIOException       - throws this exception if could not read from DB
      */
     public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, RevisionNotFoundException, DatabaseIOException {
-        return pm.readNVersions(entityIdentifier, fieldIdentifier, n);
+        return pm.readNRevisions(entityIdentifier, fieldIdentifier, n);
     }
 
 
     /**
      * returns full entity - field structure
+     *
      * @return - entity field structure via map of names
+     * @throws DatabaseIOException - throws this exception if could not read from DB
      */
     public HashMap<String, List<String>> getAll() throws DatabaseIOException {
         return pm.getAll();

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.*;
 import com.mongodb.client.model.ReplaceOptions;
-import exeptions.DatabaseIOException;
+import exeptions.MongoReadException;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import sql_entities.VersionedField;
@@ -15,13 +15,22 @@ import java.util.HashMap;
 import java.util.List;
 
 
+/**
+ * Simple DB Connection handler for MongoDB
+ * Built to persist a DataStructure as a single object in DB
+ * Saves Object within a given DB, in a single MongoCollection, in a single Document
+ * as a single value within it
+ */
 public class MongoDBConnector {
-    // Configuration
     private MongoClient client;
     private ClientSession session;
-    private MongoCollection collection;
+    private MongoCollection<Document> collection;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * Connects to DB and initializes it
+     * opens a session to the DB
+     */
     public void connect() {
         client = MongoClients.create(MongoConfig.CONNECTION_URI);
         session = client.startSession();
@@ -29,6 +38,11 @@ public class MongoDBConnector {
         collection = database.getCollection(MongoConfig.COLLECTION_NAME);
     }
 
+    /**
+     * Persists Object within the database
+     *
+     * @param o - the entire data to persist in DB
+     */
     public void persist(Object o) {
         try {
             String OString = objectMapper.writeValueAsString(o);
@@ -38,20 +52,28 @@ public class MongoDBConnector {
         }
     }
 
-    public HashMap<String, HashMap<String, List<VersionedField>>> read() throws DatabaseIOException {
-         Document doc = (Document)collection.find(session, BsonDocument.parse("{}")).first();
-         if(doc == null) {
-             return new HashMap<>();
-         }
-         String data = (String) doc.get(MongoConfig.DOCUMENT_NAME);
+    /**
+     * @return the Data within the db
+     * @throws MongoReadException - if cannot parse the data will throw exception
+     */
+    public HashMap<String, HashMap<String, List<VersionedField>>> read() throws MongoReadException {
+        Document doc = collection.find(session, BsonDocument.parse("{}")).first();
+        if (doc == null) {
+            return new HashMap<>();
+        }
+        String data = (String) doc.get(MongoConfig.DOCUMENT_NAME);
 
-         try {
-             return objectMapper.readValue(data, new TypeReference<HashMap<String, HashMap<String, List<VersionedField>>>>() {});
-         } catch (IOException e) {
-             throw new DatabaseIOException();
-         }
+        try {
+            return objectMapper.readValue(data, new TypeReference<HashMap<String, HashMap<String, List<VersionedField>>>>() {
+            });
+        } catch (IOException e) {
+            throw new MongoReadException();
+        }
     }
 
+    /**
+     * Closes the connection to the database
+     */
     public void close() {
         client.close();
     }

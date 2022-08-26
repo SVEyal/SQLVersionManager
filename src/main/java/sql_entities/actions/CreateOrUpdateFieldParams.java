@@ -1,4 +1,4 @@
-package sql_entities.rest_classes;
+package sql_entities.actions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

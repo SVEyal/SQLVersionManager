@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Manages persistence for the system
- * this persistence is local and will be later
+ * Manages persistence for the system over MongoDB
+ * Data format is a HashMap<EntityId, HashMap<FieldId, VersionField>>>
  * changed to db
  */
-// todo: replace with database
+
 public class FieldPersistentManager {
     private HashMap<String, HashMap<String, List<VersionedField>>> data;
     private final MongoDBConnector dbConnector;
@@ -41,7 +41,7 @@ public class FieldPersistentManager {
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void persist(String entityId, VersionedField versionedField) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
-        data = dbConnector.read();
+        updateDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(versionedField.getId())) {
                 if (!read(entityId, versionedField.getId()).equals(versionedField)) {
@@ -87,7 +87,7 @@ public class FieldPersistentManager {
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public VersionedField read(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
-        data = dbConnector.read();
+        updateDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(fieldId)) {
                 return data.get(entityId).get(fieldId).get(data.get(entityId).get(fieldId).size() - 1);
@@ -110,8 +110,8 @@ public class FieldPersistentManager {
      * @throws EntityNotFoundException   - throws this exception if entity doesn't exist
      * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
      */
-    public List<VersionedField> readNVersions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, RevisionNotFoundException, DatabaseIOException {
-        data = dbConnector.read();
+    public List<VersionedField> readNRevisions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, RevisionNotFoundException, DatabaseIOException {
+        updateDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(fieldId)) {
                 if (data.get(entityId).get(fieldId).size() >= n) {
@@ -134,7 +134,7 @@ public class FieldPersistentManager {
      * @return - entities to field structure map
      */
     public HashMap<String, List<String>> getAll() throws DatabaseIOException {
-        data = dbConnector.read();
+        updateDataFromDB();
         HashMap<String, List<String>> entityToFieldMap = new HashMap<>();
         for (String entity :
                 data.keySet()) {
@@ -147,7 +147,14 @@ public class FieldPersistentManager {
         return entityToFieldMap;
     }
 
-    //todo : remove
+
+    /**
+     * Creates a new entity
+     *
+     * @param entityId - the id of a new entity
+     * @return - returns the ID of the newly created entity
+     * @throws DatabaseIOException - throws when fails to read entity from DB
+     */
     public String addEntity(String entityId) throws DatabaseIOException {
         updateDataFromDB();
         data.put(entityId, new HashMap<>());

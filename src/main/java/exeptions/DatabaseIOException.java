@@ -1,4 +1,4 @@
 package exeptions;
 
-public class DatabaseIOException extends Exception{
+public abstract class DatabaseIOException extends Exception {
 }
