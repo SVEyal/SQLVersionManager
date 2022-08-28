@@ -30,6 +30,7 @@ public class FieldRestController {
      * @param fieldType        - field data type
      * @param SQLCode          - Code for sql calculation of field
      * @param description      - fields description
+     * @param username         - username of revision owner
      * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
@@ -37,8 +38,9 @@ public class FieldRestController {
                                     String fieldIdentifier,
                                     FieldType fieldType,
                                     String SQLCode,
-                                    String description) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
-        VersionedField versionedField = new VersionedField(fieldIdentifier, fieldType, SQLCode, description, Instant.now().getEpochSecond(), "user"); // todo: user
+                                    String description,
+                                    String username) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+        VersionedField versionedField = new VersionedField(fieldIdentifier, fieldType, SQLCode, description, Instant.now().getEpochSecond(), username);
         pm.persist(entityIdentifier, versionedField);
     }
 
