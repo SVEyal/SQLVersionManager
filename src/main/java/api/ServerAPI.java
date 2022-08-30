@@ -3,7 +3,6 @@ package api;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
-import exeptions.RevisionNotFoundException;
 import io.javalin.Javalin;
 import org.eclipse.jetty.http.HttpStatus;
 import sql_entities.actions.CreateOrUpdateFieldParams;
@@ -19,39 +18,37 @@ public class ServerAPI {
 
     private static void init(Javalin app) {
         // Get all entities
-        ServerController sc = new ServerController();
-        JavalinSimpleAuth auth = new JavalinSimpleAuth();
+        ServerController serverController = new ServerController();
+        JavalinSimpleAuth authenticator = new JavalinSimpleAuth();
 
-        app.get("/entities", ctx -> auth.authenticate(ctx, () -> {
+        app.get("/entities", ctx -> authenticator.authenticate(ctx, () -> {
             try {
-                ctx.json(sc.getAll());
+                ctx.json(serverController.getAll());
             } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
         }));
 
         // CREATE new entity
-        app.get("/entities/create/:id", ctx -> auth.authenticate(ctx, () -> {
+        app.get("/entities/create/:id", ctx -> authenticator.authenticate(ctx, () -> {
             try {
-                ctx.json(sc.addEntity(ctx.pathParam("id")));
+                ctx.json(serverController.addEntity(ctx.pathParam("id")));
             } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
         }));
 
         // CREATE or UPDATE field
-        app.post("/field/create_or_update", ctx -> auth.authenticate(ctx, () -> {
+        app.post("/field/create_or_update", ctx -> authenticator.authenticate(ctx, () -> {
             CreateOrUpdateFieldParams params = ctx.bodyAsClass(CreateOrUpdateFieldParams.class);
             try {
-                sc.createOrUpdateField(params.getEntityIdentifier(),
+                serverController.createOrUpdateField(params.getEntityIdentifier(),
                         params.getFieldIdentifier(),
                         params.getFieldType(),
                         params.getSqlCode(),
                         params.getDescription(),
-                        auth.getUser(ctx));
-            } catch (FieldNotFoundException e) {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + params.getFieldIdentifier() + " doesn't exist for entity " + params.getEntityIdentifier());
-            } catch (EntityNotFoundException e) {
+                        authenticator.getUser(ctx));
+            }  catch (EntityNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity:" + params.getEntityIdentifier());
             } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
@@ -59,9 +56,9 @@ public class ServerAPI {
         }));
 
         // DELETE field
-        app.delete("/field/:entity/:field", ctx -> auth.authenticate(ctx, () -> {
+        app.delete("/field/:entity/:field", ctx -> authenticator.authenticate(ctx, () -> {
             try {
-                sc.deleteField(ctx.pathParam("entity"), ctx.pathParam("field"));
+                serverController.deleteField(ctx.pathParam("entity"), ctx.pathParam("field"));
             } catch (FieldNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
@@ -72,9 +69,9 @@ public class ServerAPI {
         }));
 
         // READ values
-        app.get("/field/:entity/:field", ctx -> auth.authenticate(ctx, () -> {
+        app.get("/field/:entity/:field", ctx -> authenticator.authenticate(ctx, () -> {
             try {
-                ctx.json(sc.readField(ctx.pathParam("entity"), ctx.pathParam("field")));
+                ctx.json(serverController.readField(ctx.pathParam("entity"), ctx.pathParam("field")));
             } catch (FieldNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
@@ -84,27 +81,24 @@ public class ServerAPI {
             }
         }));
 
-        app.get("/field/:entity/:field/:n", ctx -> auth.authenticate(ctx, () -> {
+        app.get("/field/:entity/:field/:n", ctx -> authenticator.authenticate(ctx, () -> {
             try {
-                ctx.json(sc.readNFieldVersions(ctx.pathParam("entity"),
+                ctx.json(serverController.readNFieldVersions(ctx.pathParam("entity"),
                         ctx.pathParam(":field"),
                         ctx.validatedPathParam("n").asInt().getOrThrow()));
-            } catch (RevisionNotFoundException e) {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " of entity " + ctx.pathParam("entity")
-                        + " doesn't have " + ctx.pathParam("n") + " revisions");
             } catch (FieldNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Field " + ctx.pathParam("field") + " doesn't exist for entity " + ctx.pathParam("entity"));
             } catch (EntityNotFoundException e) {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity:" + ctx.pathParam("entity"));
+                ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity: " + ctx.pathParam("entity"));
             } catch (DatabaseIOException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
             }
         }));
 
         // CREATE user
-        app.post("/users", ctx -> auth.authenticate(ctx, () -> {
+        app.post("/users", ctx -> authenticator.authenticate(ctx, () -> {
             CreateUserParams params = ctx.bodyAsClass(CreateUserParams.class);
-            if(auth.addUser(params.getUsername(), params.getPassword())) {
+            if(authenticator.addUser(params.getUsername(), params.getPassword())) {
                 ctx.status(HttpStatus.CREATED_201).json("Created user " + params.getUsername());
             } else {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not create user " + params.getUsername());
@@ -112,14 +106,14 @@ public class ServerAPI {
         }));
 
         // DELETE user
-        app.delete("/users/:username", ctx -> auth.authenticate(ctx, () -> {
-            if(auth.deleteUser(ctx.pathParam("username"))) {
+        app.delete("/users/:username", ctx -> authenticator.authenticate(ctx, () -> {
+            if(authenticator.deleteUser(ctx.pathParam("username"))) {
                 ctx.status(HttpStatus.OK_200).json("Deleted user " + ctx.pathParam("username"));
             } else {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not delete user " + ctx.pathParam("username"));
             }
         }));
 
-        app.get("/users", ctx -> ctx.json(auth.getUsers()));
+        app.get("/users", ctx -> ctx.json(authenticator.getUsers()));
     }
 }

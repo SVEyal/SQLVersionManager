@@ -3,7 +3,6 @@ package persistance.managers;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
-import exeptions.RevisionNotFoundException;
 import persistance.db_connectors.MongoDBConnector;
 import sql_entities.VersionedField;
 
@@ -35,20 +34,20 @@ public class FieldPersistentManager {
     /**
      * Persists data in persistence solution, either create or update
      *
-     * @param entityId       - id of the Parent entity
-     * @param versionedField - field version info
-     * @throws FieldNotFoundException  - throws this exception if field doesn't exist
+     * @param entityId - id of the Parent entity
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
-    public void persist(String entityId, VersionedField versionedField) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+    public void persist(String entityId, VersionedField versionedField) throws EntityNotFoundException, DatabaseIOException {
         updateDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(versionedField.getId())) {
-                if (!read(entityId, versionedField.getId()).equals(versionedField)) {
+                final int size = data.get(entityId).get(versionedField.getId()).size();
+                if (!data.get(entityId).get(versionedField.getId()).get(size-1).equals(versionedField)) {
                     data.get(entityId).get(versionedField.getId()).add(versionedField);
                 }
             } else {
-                data.get(entityId).put(versionedField.getId(), new ArrayList<>(Collections.singletonList(versionedField)));
+                data.get(entityId).put(versionedField.getId(), new  ArrayList<>(Collections.singletonList(versionedField)));
             }
             dbConnector.persist(data);
         } else {
@@ -108,18 +107,13 @@ public class FieldPersistentManager {
      * @return - n last versions of field
      * @throws FieldNotFoundException    - throws this exception if field doesn't exist
      * @throws EntityNotFoundException   - throws this exception if entity doesn't exist
-     * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
      */
-    public List<VersionedField> readNRevisions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, RevisionNotFoundException, DatabaseIOException {
+    public List<VersionedField> readNRevisions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
         updateDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(fieldId)) {
-                if (data.get(entityId).get(fieldId).size() >= n) {
-                    final int lastPos = data.get(entityId).get(fieldId).size();
-                    return data.get(entityId).get(fieldId).subList(lastPos - n, lastPos);
-                } else {
-                    throw new RevisionNotFoundException();
-                }
+                final int lastPos = data.get(entityId).get(fieldId).size();
+                return data.get(entityId).get(fieldId).subList(Math.max(lastPos - n, 0), lastPos);
             } else {
                 throw new FieldNotFoundException();
             }

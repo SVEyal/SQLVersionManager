@@ -3,7 +3,6 @@ package api;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
-import exeptions.RevisionNotFoundException;
 import persistance.db_connectors.MongoDBConnector;
 import persistance.managers.FieldPersistentManager;
 import rest_controller.FieldRestController;
@@ -14,15 +13,15 @@ import java.util.List;
 
 public class ServerController {
     private final MongoDBConnector dbConnector = new MongoDBConnector();
-    private final FieldPersistentManager fpm = new FieldPersistentManager(dbConnector);
-    private final FieldRestController rc = new FieldRestController(fpm);
+    private final FieldPersistentManager persistentManager = new FieldPersistentManager(dbConnector);
+    private final FieldRestController restController = new FieldRestController(persistentManager);
 
     public HashMap<String, List<String>> getAll() throws DatabaseIOException {
-        return rc.getAll();
+        return restController.getAll();
     }
 
     public String addEntity(String entityId) throws DatabaseIOException {
-        return fpm.addEntity(entityId);
+        return persistentManager.addEntity(entityId);
     }
 
     public void createOrUpdateField(String entityIdentifier,
@@ -31,8 +30,8 @@ public class ServerController {
                                     String sqlCode,
                                     String description,
                                     String username)
-            throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
-        rc.createOrUpdateField(entityIdentifier,
+            throws EntityNotFoundException, DatabaseIOException {
+        restController.createOrUpdateField(entityIdentifier,
                 fieldIdentifier,
                 fieldType,
                 sqlCode,
@@ -42,17 +41,17 @@ public class ServerController {
 
     public void deleteField(String entity, String field)
             throws FieldNotFoundException, EntityNotFoundException {
-        rc.deleteField(entity, field);
+        restController.deleteField(entity, field);
     }
 
     public Object readField(String entity, String field)
             throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
-        return rc.readField(entity, field);
+        return restController.readField(entity, field);
     }
 
 
     public Object readNFieldVersions(String entity, String pathParam, Integer n)
-            throws FieldNotFoundException, RevisionNotFoundException, DatabaseIOException, EntityNotFoundException {
-        return rc.readNFieldVersions(entity, pathParam, n);
+            throws FieldNotFoundException, DatabaseIOException, EntityNotFoundException {
+        return restController.readNFieldVersions(entity, pathParam, n);
     }
 }

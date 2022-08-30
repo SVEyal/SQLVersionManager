@@ -18,8 +18,8 @@ public class JavalinSimpleAuth {
     }
 
     private boolean authenticate(Context ctx) {
-        String username = Objects.requireNonNull(ctx.basicAuthCredentials()).getUsername();
-        String password = Objects.requireNonNull(ctx.basicAuthCredentials()).getPassword();
+        final String username = Objects.requireNonNull(ctx.basicAuthCredentials()).getUsername();
+        final String password = Objects.requireNonNull(ctx.basicAuthCredentials()).getPassword();
 
         return userToPassword.containsKey(username) &&
                 userToPassword.get(username).equals(password);

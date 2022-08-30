@@ -3,7 +3,6 @@ package rest_controller;
 import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
-import exeptions.RevisionNotFoundException;
 import persistance.managers.FieldPersistentManager;
 import sql_entities.FieldType;
 import sql_entities.VersionedField;
@@ -16,10 +15,10 @@ import java.util.List;
  * Main manager for CRUD operations in the system
  */
 public class FieldRestController {
-    private final FieldPersistentManager pm;
+    private final FieldPersistentManager persistentManager;
 
     public FieldRestController(FieldPersistentManager fieldPersistentManager) {
-        this.pm = fieldPersistentManager;
+        this.persistentManager = fieldPersistentManager;
     }
 
     /**
@@ -31,17 +30,17 @@ public class FieldRestController {
      * @param SQLCode          - Code for sql calculation of field
      * @param description      - fields description
      * @param username         - username of revision owner
-     * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
     public void createOrUpdateField(String entityIdentifier,
                                     String fieldIdentifier,
                                     FieldType fieldType,
                                     String SQLCode,
                                     String description,
-                                    String username) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+                                    String username) throws EntityNotFoundException, DatabaseIOException {
         VersionedField versionedField = new VersionedField(fieldIdentifier, fieldType, SQLCode, description, Instant.now().getEpochSecond(), username);
-        pm.persist(entityIdentifier, versionedField);
+        persistentManager.persist(entityIdentifier, versionedField);
     }
 
 
@@ -54,7 +53,7 @@ public class FieldRestController {
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
     public void deleteField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException {
-        pm.delete(entityIdentifier, fieldIdentifier);
+        persistentManager.delete(entityIdentifier, fieldIdentifier);
     }
 
 
@@ -69,7 +68,7 @@ public class FieldRestController {
      * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
     public VersionedField readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
-        return pm.read(entityIdentifier, fieldIdentifier);
+        return persistentManager.read(entityIdentifier, fieldIdentifier);
     }
 
     /**
@@ -81,11 +80,10 @@ public class FieldRestController {
      * @return - list of latest versions of the field
      * @throws FieldNotFoundException    - throws this exception if field doesn't exist
      * @throws EntityNotFoundException   - throws this exception if entity doesn't exist
-     * @throws RevisionNotFoundException - throws this exception if revision doesn't exist
      * @throws DatabaseIOException       - throws this exception if could not read from DB
      */
-    public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, RevisionNotFoundException, DatabaseIOException {
-        return pm.readNRevisions(entityIdentifier, fieldIdentifier, n);
+    public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+        return persistentManager.readNRevisions(entityIdentifier, fieldIdentifier, n);
     }
 
 
@@ -96,6 +94,6 @@ public class FieldRestController {
      * @throws DatabaseIOException - throws this exception if could not read from DB
      */
     public HashMap<String, List<String>> getAll() throws DatabaseIOException {
-        return pm.getAll();
+        return persistentManager.getAll();
     }
 }
