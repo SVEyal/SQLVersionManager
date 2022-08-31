@@ -25,7 +25,7 @@ public class ServerAPI {
             try {
                 ctx.json(serverController.getAll());
             } catch (DatabaseIOException e) {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR_500).json("Error while trying to read from db");
             }
         }));
 
@@ -91,7 +91,7 @@ public class ServerAPI {
             } catch (EntityNotFoundException e) {
                 ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not find entity: " + ctx.pathParam("entity"));
             } catch (DatabaseIOException e) {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Error while trying to read from db");
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR_500).json("Error while trying to read from db");
             }
         }));
 
@@ -101,7 +101,7 @@ public class ServerAPI {
             if(authenticator.addUser(params.getUsername(), params.getPassword())) {
                 ctx.status(HttpStatus.CREATED_201).json("Created user " + params.getUsername());
             } else {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not create user " + params.getUsername());
+                ctx.status(HttpStatus.BAD_REQUEST_400).json("User already exists: " + params.getUsername());
             }
         }));
 
@@ -110,7 +110,7 @@ public class ServerAPI {
             if(authenticator.deleteUser(ctx.pathParam("username"))) {
                 ctx.status(HttpStatus.OK_200).json("Deleted user " + ctx.pathParam("username"));
             } else {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json("Could not delete user " + ctx.pathParam("username"));
+                ctx.status(HttpStatus.BAD_REQUEST_400).json("User doesn't exist: " + ctx.pathParam("username"));
             }
         }));
 

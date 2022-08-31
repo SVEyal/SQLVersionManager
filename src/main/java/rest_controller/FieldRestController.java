@@ -5,7 +5,7 @@ import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
 import persistance.managers.FieldPersistentManager;
 import sql_entities.FieldType;
-import sql_entities.VersionedField;
+import sql_entities.FieldRevision;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -39,8 +39,8 @@ public class FieldRestController {
                                     String SQLCode,
                                     String description,
                                     String username) throws EntityNotFoundException, DatabaseIOException {
-        VersionedField versionedField = new VersionedField(fieldIdentifier, fieldType, SQLCode, description, Instant.now().getEpochSecond(), username);
-        persistentManager.persist(entityIdentifier, versionedField);
+        FieldRevision fieldRevision = new FieldRevision(fieldIdentifier, fieldType, SQLCode, description, Instant.now().getEpochSecond(), username);
+        persistentManager.persist(entityIdentifier, fieldRevision);
     }
 
 
@@ -51,8 +51,9 @@ public class FieldRestController {
      * @param fieldIdentifier  - field id
      * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
+     * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
-    public void deleteField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException {
+    public void deleteField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
         persistentManager.delete(entityIdentifier, fieldIdentifier);
     }
 
@@ -67,7 +68,7 @@ public class FieldRestController {
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
-    public VersionedField readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+    public FieldRevision readField(String entityIdentifier, String fieldIdentifier) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
         return persistentManager.read(entityIdentifier, fieldIdentifier);
     }
 
@@ -82,7 +83,7 @@ public class FieldRestController {
      * @throws EntityNotFoundException   - throws this exception if entity doesn't exist
      * @throws DatabaseIOException       - throws this exception if could not read from DB
      */
-    public List<VersionedField> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
+    public List<FieldRevision> readNFieldVersions(String entityIdentifier, String fieldIdentifier, int n) throws EntityNotFoundException, FieldNotFoundException, DatabaseIOException {
         return persistentManager.readNRevisions(entityIdentifier, fieldIdentifier, n);
     }
 

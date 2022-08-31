@@ -4,7 +4,7 @@ import exeptions.DatabaseIOException;
 import exeptions.EntityNotFoundException;
 import exeptions.FieldNotFoundException;
 import persistance.db_connectors.MongoDBConnector;
-import sql_entities.VersionedField;
+import sql_entities.FieldRevision;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,17 +18,11 @@ import java.util.List;
  */
 
 public class FieldPersistentManager {
-    private HashMap<String, HashMap<String, List<VersionedField>>> data;
     private final MongoDBConnector dbConnector;
 
     public FieldPersistentManager(MongoDBConnector dbConnector) {
         this.dbConnector = dbConnector;
         this.dbConnector.connect();
-        try {
-            this.data = dbConnector.read();
-        } catch (DatabaseIOException e) {
-            System.out.println("Could not read from database with error, " + e);
-        }
     }
 
     /**
@@ -38,16 +32,16 @@ public class FieldPersistentManager {
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      * @throws DatabaseIOException     - throws this exception if could not read from DB
      */
-    public void persist(String entityId, VersionedField versionedField) throws EntityNotFoundException, DatabaseIOException {
-        updateDataFromDB();
+    public void persist(String entityId, FieldRevision fieldRevision) throws EntityNotFoundException, DatabaseIOException {
+        HashMap<String, HashMap<String, List<FieldRevision>>> data = readDataFromDB();
         if (data.containsKey(entityId)) {
-            if (data.get(entityId).containsKey(versionedField.getId())) {
-                final int size = data.get(entityId).get(versionedField.getId()).size();
-                if (!data.get(entityId).get(versionedField.getId()).get(size-1).equals(versionedField)) {
-                    data.get(entityId).get(versionedField.getId()).add(versionedField);
+            if (data.get(entityId).containsKey(fieldRevision.getId())) {
+                final int size = data.get(entityId).get(fieldRevision.getId()).size();
+                if (!data.get(entityId).get(fieldRevision.getId()).get(size-1).equals(fieldRevision)) {
+                    data.get(entityId).get(fieldRevision.getId()).add(fieldRevision);
                 }
             } else {
-                data.get(entityId).put(versionedField.getId(), new  ArrayList<>(Collections.singletonList(versionedField)));
+                data.get(entityId).put(fieldRevision.getId(), new  ArrayList<>(Collections.singletonList(fieldRevision)));
             }
             dbConnector.persist(data);
         } else {
@@ -63,7 +57,8 @@ public class FieldPersistentManager {
      * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
-    public void delete(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException {
+    public void delete(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
+        HashMap<String, HashMap<String, List<FieldRevision>>> data = readDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(fieldId)) {
                 data.get(entityId).remove(fieldId);
@@ -85,8 +80,8 @@ public class FieldPersistentManager {
      * @throws FieldNotFoundException  - throws this exception if field doesn't exist
      * @throws EntityNotFoundException - throws this exception if entity doesn't exist
      */
-    public VersionedField read(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
-        updateDataFromDB();
+    public FieldRevision read(String entityId, String fieldId) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
+        HashMap<String, HashMap<String, List<FieldRevision>>> data = readDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(fieldId)) {
                 return data.get(entityId).get(fieldId).get(data.get(entityId).get(fieldId).size() - 1);
@@ -108,8 +103,8 @@ public class FieldPersistentManager {
      * @throws FieldNotFoundException    - throws this exception if field doesn't exist
      * @throws EntityNotFoundException   - throws this exception if entity doesn't exist
      */
-    public List<VersionedField> readNRevisions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
-        updateDataFromDB();
+    public List<FieldRevision> readNRevisions(String entityId, String fieldId, int n) throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
+        HashMap<String, HashMap<String, List<FieldRevision>>> data = readDataFromDB();
         if (data.containsKey(entityId)) {
             if (data.get(entityId).containsKey(fieldId)) {
                 final int lastPos = data.get(entityId).get(fieldId).size();
@@ -128,7 +123,7 @@ public class FieldPersistentManager {
      * @return - entities to field structure map
      */
     public HashMap<String, List<String>> getAll() throws DatabaseIOException {
-        updateDataFromDB();
+        HashMap<String, HashMap<String, List<FieldRevision>>> data = readDataFromDB();
         HashMap<String, List<String>> entityToFieldMap = new HashMap<>();
         for (String entity :
                 data.keySet()) {
@@ -150,13 +145,13 @@ public class FieldPersistentManager {
      * @throws DatabaseIOException - throws when fails to read entity from DB
      */
     public String addEntity(String entityId) throws DatabaseIOException {
-        updateDataFromDB();
+        HashMap<String, HashMap<String, List<FieldRevision>>> data = readDataFromDB();
         data.put(entityId, new HashMap<>());
         dbConnector.persist(data);
         return entityId;
     }
 
-    private void updateDataFromDB() throws DatabaseIOException {
-        data = dbConnector.read();
+    private HashMap<String, HashMap<String, List<FieldRevision>>> readDataFromDB() throws DatabaseIOException {
+        return dbConnector.read();
     }
 }

@@ -6,9 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.*;
 import com.mongodb.client.model.ReplaceOptions;
 import exeptions.MongoReadException;
-import org.bson.BsonDocument;
 import org.bson.Document;
-import sql_entities.VersionedField;
+import sql_entities.FieldRevision;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,7 +45,7 @@ public class MongoDBConnector {
     public void persist(Object o) {
         try {
             String OString = objectMapper.writeValueAsString(o);
-            collection.replaceOne(session, BsonDocument.parse("{}"), new Document(MongoConfig.DOCUMENT_NAME, OString), new ReplaceOptions().upsert(true));
+            collection.replaceOne(session, MongoConfig.EMPTY_FILTER, new Document(MongoConfig.DOCUMENT_NAME, OString), new ReplaceOptions().upsert(true));
         } catch (JsonProcessingException e) {
             System.out.println("Error reading obj, persist aborted");
         }
@@ -56,16 +55,15 @@ public class MongoDBConnector {
      * @return the Data within the db
      * @throws MongoReadException - if cannot parse the data will throw exception
      */
-    public HashMap<String, HashMap<String, List<VersionedField>>> read() throws MongoReadException {
-        Document doc = collection.find(session, BsonDocument.parse("{}")).first();
+    public HashMap<String, HashMap<String, List<FieldRevision>>> read() throws MongoReadException {
+        Document doc = collection.find(session, MongoConfig.EMPTY_FILTER).first();
         if (doc == null) {
             return new HashMap<>();
         }
         String data = (String) doc.get(MongoConfig.DOCUMENT_NAME);
 
         try {
-            return objectMapper.readValue(data, new TypeReference<HashMap<String, HashMap<String, List<VersionedField>>>>() {
-            });
+            return objectMapper.readValue(data, new TypeReference<HashMap<String, HashMap<String, List<FieldRevision>>>>() {});
         } catch (IOException e) {
             throw new MongoReadException();
         }

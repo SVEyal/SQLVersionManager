@@ -3,17 +3,17 @@ package sql_entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class VersionedField extends Field {
+public class FieldRevision extends Field {
     private final Long revisionCreationTime;
     private final String revisingUser;
 
     @JsonCreator
-    public VersionedField(@JsonProperty("name") String name,
-                          @JsonProperty("type") FieldType type,
-                          @JsonProperty("sqlCode") String sqlCode,
-                          @JsonProperty("description") String description,
-                          @JsonProperty("revisionCreationTime") Long revisionCreationTime,
-                          @JsonProperty("revisingUser") String revisingUser) {
+    public FieldRevision(@JsonProperty("name") String name,
+                         @JsonProperty("type") FieldType type,
+                         @JsonProperty("sqlCode") String sqlCode,
+                         @JsonProperty("description") String description,
+                         @JsonProperty("revisionCreationTime") Long revisionCreationTime,
+                         @JsonProperty("revisingUser") String revisingUser) {
         super(name, type, sqlCode, description);
         this.revisionCreationTime = revisionCreationTime;
         this.revisingUser = revisingUser;

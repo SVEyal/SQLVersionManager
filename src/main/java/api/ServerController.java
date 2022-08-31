@@ -40,7 +40,7 @@ public class ServerController {
     }
 
     public void deleteField(String entity, String field)
-            throws FieldNotFoundException, EntityNotFoundException {
+            throws FieldNotFoundException, EntityNotFoundException, DatabaseIOException {
         restController.deleteField(entity, field);
     }
 
